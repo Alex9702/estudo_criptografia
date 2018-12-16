@@ -6,7 +6,7 @@ def mdc(x, y):
         y = n
     return x
 
-# retorna o t(n)
+# retorna o t(n) -> Totiene de Euler
 def totiene(n):
     return len([i for i in range(1, n) if mdc(n, i) == 1])
 
