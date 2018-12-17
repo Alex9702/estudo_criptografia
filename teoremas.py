@@ -22,5 +22,4 @@ def totiene(n):
 def lista_primos(n):
     return [i for i in range(1, n) if totiene(i) == i - 1]
 
-print(lista_primos(1000))
-    
+# print(lista_primos(1000))
