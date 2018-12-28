@@ -136,8 +136,8 @@ def getbuf(s):
         return s
     elif isinstance(s, bytes):
         return str(s)
-    else:
-        return buffer(s)
+    # else:
+    #     return buffer(s)
 
 def sha_update(sha_info, buffer):
     count = len(buffer)
@@ -156,7 +156,7 @@ def sha_update(sha_info, buffer):
         
         # copy buffer
         for x in enumerate(buffer[buffer_idx:buffer_idx+i]):
-            sha_info['data'][sha_info['local']+x[0]] = struct.unpack('B', x[1])[0]
+            sha_info['data'][sha_info['local']+x[0]] = struct.unpack('B', x[1].encode())[0]
         
         count -= i
         buffer_idx += i
@@ -170,7 +170,7 @@ def sha_update(sha_info, buffer):
     
     while count >= SHA_BLOCKSIZE:
         # copy buffer
-        sha_info['data'] = [struct.unpack('B',c)[0] for c in buffer[buffer_idx:buffer_idx + SHA_BLOCKSIZE]]
+        sha_info['data'] = [struct.unpack('B',c.encode())[0] for c in buffer[buffer_idx:buffer_idx + SHA_BLOCKSIZE]]
         count -= SHA_BLOCKSIZE
         buffer_idx += SHA_BLOCKSIZE
         sha_transform(sha_info)
@@ -178,7 +178,7 @@ def sha_update(sha_info, buffer):
     
     # copy buffer
     pos = sha_info['local']
-    sha_info['data'][pos:pos+count] = [struct.unpack('B',c)[0] for c in buffer[buffer_idx:buffer_idx + count]]
+    sha_info['data'][pos:pos+count] = [struct.unpack('B',c.encode())[0] for c in buffer[buffer_idx:buffer_idx + count]]
     sha_info['local'] = count
 
 def sha_final(sha_info):
@@ -249,6 +249,8 @@ class sha224(sha256):
         return new
 
 def test():
+    # sha256('abc').digest()
+
     a_str = "just a test string"
     
     assert 'e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855' == sha256().hexdigest()
@@ -261,4 +263,3 @@ def test():
 
 if __name__ == "__main__":
     test()
-
