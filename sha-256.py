@@ -1,4 +1,4 @@
-from struct import pack, unpack
+# from struct import pack, unpack
 from attr_helper import init_state_256, K_256
 from utils_helper import RotR, ShR
 
@@ -50,84 +50,28 @@ def sha256_transform():
         c = b
         b = a
         a = (T1 + T2) & 0xffffffff
-
-    ctx['state'][0] += a
-    ctx['state'][1] += b
-    ctx['state'][2] += c
-    ctx['state'][3] += d
-    ctx['state'][4] += e
-    ctx['state'][5] += f
-    ctx['state'][6] += g
-    ctx['state'][7] += h
+    
+    ss = (a,b,c,d,e,f,g,h)
+    for i in range(len(ctx['state'])):
+        ctx['state'][i] = (ctx['state'][i] + ss[i]) & 0xffffffff
 
 
 def sha256_update(s):
-    s = s.encode() if isinstance(s, bytes) else str(s)
-    length = len(s)
+    pass
 
-    for i in range(length):
-        ctx['data'][i] = ord(s[i])
-        ctx['datalen'] += 1
-
-        if ctx['datalen'] == 64:
-            sha256_transform()
-            ctx['bitlen'] += 512
-            ctx['datalen'] = 0
-    # ctx['data'][-1] = (len(s)<<3) & 0xffffffff
 
 def sha256_final():
-
-    i = ctx['datalen']
-
-    if ctx['datalen'] < 56:
-        ctx['data'][i] = 0x80
-        i += 1
-
-        while i < 56:
-            ctx['data'][i] = 0x00
-            i += 1
-    else:
-        ctx['data'][i] = 0x80
-        i += 1
-        while i < 64:
-            ctx['data'][i] = 0x00
-        sha256_transform()
-
-    ctx['bitlen'] += ctx['datalen'] * 8
-    ctx['data'][63] = ctx['bitlen']
-    ctx['data'][62] = ctx['bitlen'] >> 8
-    ctx['data'][61] = ctx['bitlen'] >> 16
-    ctx['data'][60] = ctx['bitlen'] >> 24
-    ctx['data'][59] = ctx['bitlen'] >> 32
-    ctx['data'][58] = ctx['bitlen'] >> 40
-    ctx['data'][57] = ctx['bitlen'] >> 48
-    ctx['data'][56] = ctx['bitlen'] >> 56
-    sha256_transform()
-
-    h = [0] * 32
-
-    for i in range(4):
-        h[i] = (ctx['state'][0] >> (24 - i * 8)) & 0xff
-        h[i + 4] = (ctx['state'][1] >> (24 - i * 8)) & 0xff
-        h[i + 8] = (ctx['state'][2] >> (24 - i * 8)) & 0xff
-        h[i + 12] = (ctx['state'][3] >> (24 - i * 8)) & 0xff
-        h[i + 16] = (ctx['state'][4] >> (24 - i * 8)) & 0xff
-        h[i + 20] = (ctx['state'][5] >> (24 - i * 8)) & 0xff
-        h[i + 24] = (ctx['state'][6] >> (24 - i * 8)) & 0xff
-        h[i + 28] = (ctx['state'][7] >> (24 - i * 8)) & 0xff
-
-    print([hex(s)[2:] for s in h])
-
+    pass
 
 if __name__ == '__main__':
     sha_init()
-    t = 'abc'
-    for i, l in enumerate(t):
-        ctx['data'][i] = ord(l)
-    ctx['data'][len(t)] = 0x80
-    ctx['data'][-1] = len(t) << 3 & 0xffffffff
+    # t = 'password'
+    # for i, l in enumerate(t):
+    #     ctx['data'][i] = ord(l)
+    # ctx['data'][len(t)] = 0x80
+    # ctx['data'][-1] = len(t) << 3 & 0xffffffff
 
     sha256_transform()
-    # sha256_update('password')
+    sha256_update('password')
     sha256_final()
-    print(ctx['data'])
+    # print(ctx['state'])
