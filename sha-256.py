@@ -34,13 +34,14 @@ def sha_init():
 def sha256_transform():
     m = [0] * 64
     data = ctx['data']
+
     for i in range(16):
         m[i] = (data[4*i] << 24 | data[4*i+1] << 16 | data[4*i+2] << 8 | data[4*i+3] ) & 0xffffffff
 
     for i in range(16, 64):
         m[i] =( gamma1(m[i - 2]) + m[i - 7] + gamma0(m[i - 15]) + m[i - 16]) & 0xffffffff
 
-    a, b, c, d, e, f, g, h = init_state_256
+    a, b, c, d, e, f, g, h = ctx['state']
 
     for i in range(64):
         T1 = (h + sigma1(e) + Ch(e, f, g) + K_256[i] + m[i]) & 0xffffffff
@@ -55,6 +56,7 @@ def sha256_transform():
         a = (T1 + T2) & 0xffffffff
     
     ss = (a,b,c,d,e,f,g,h)
+
     for i in range(len(ctx['state'])):
         ctx['state'][i] = (ctx['state'][i] + ss[i]) & 0xffffffff
 
@@ -69,14 +71,11 @@ def sha256_update(s):
             ctx['bitlen'] += 512
             ctx['datalen'] = 0
     
-    ctx['data'][ctx['datalen']] = 0x80
-    ctx['data'][-1] = ctx['datalen'] * BITSIZE
-    sha256_transform()
-
 def sha256_final():
     h = []
     i = ctx['datalen']
-    
+    ctx['data'][i] = 0x80
+    i += 1
     if i > BLOCKSIZE - BITSIZE:
         ctx['data'] = ctx['data'][:i] + [0] * (BLOCKSIZE - i)
         sha256_transform()
@@ -95,34 +94,34 @@ def sha256_final():
     ctx['data'][62] = (ctx['bitlen'] >>  8) & 0xff
     ctx['data'][63] = (ctx['bitlen'] >>  0) & 0xff
 
-    h.extend([hex(s)[2:] for s in ctx['state']])
+    sha256_transform()
+
+    h.extend([(8 - len(hex(s)[2:])) * '0' + hex(s)[2:] for s in ctx['state']])
     return ''.join(h)
 
 
-
-def sha256(s=None):
-    sha_init()
-    if s:
-        sha256_update(s)
+class sha256:
+    def __init__(self, message=None):
+        sha_init()
+        if message:
+            self.update(message)
+    
+    def update(self, message):
+        sha256_update(message)
+    
+    def hexdigest(self):
+        return sha256_final()
 
 if __name__ == '__main__':
-    # t = 'password'
-    # sha_init()
-    # sha256_update(t)
-    # print(sha256_final() == '5e884898da28047151d0e56f8dc6292773603d0d6aabbdd62a11ef721d1542d8')
-   
-    # print([hex(s) for s in ctx['data']])
+    
+    t = 'test string'
 
-    # t = 'just a test string'
-    # sha_init()
-    # sha256_update(t)
-    # print(sha256_final() == 'd7b553c6f09ac85d142415f857c5310f3bbbe7cdd787cce4b985acedd585266f')
+    print('e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855' == sha256().hexdigest())
+    print('d5579c46dfcc7f18207013e65b44e4cb4e2c2298f4ac457ba8f82743f31e930b' == sha256(t).hexdigest())
+    print('30b5ec0f23e9d95ee0941c55f6f15047bd3978f76f7e554cf4e3b1ea19e30300' == sha256(t*10).hexdigest())
 
-    # t = 'just a test string' * 7
-    t = 'just a test string'
-    sha_init()
-    sha256_update(t)
-    # sha256_final()
-    print([hex(s) for s in ctx['state']])
-    print([hex(s) for s in ctx['data']])
-    # print(sha256_final() == '8113ebf33c97daa9998762aacafe750c7cefc2b2f173c90c59663a57fe626f21')
+    s = sha256(t)
+    s.update(t)
+    print('1245a39b7546c1b7f305e43c4bd1cd38e465e317ff4c95f241d5826061253592' == s.hexdigest())
+
+
