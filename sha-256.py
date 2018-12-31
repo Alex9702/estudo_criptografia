@@ -1,9 +1,12 @@
+# https://github.com/B-Con/crypto-algorithms/blob/master/sha256.c
+# FIPS 180-4
+# https://ws680.nist.gov/publication/get_pdf.cfm?pub_id=910977
 # from struct import pack, unpack
 from attr_helper import init_state_256, K_256
 from utils_helper import RotR, ShR
 
 BLOCKSIZE = 64
-
+BITSIZE = 8
 
 ctx = {
     'data': [0] * BLOCKSIZE,
@@ -36,7 +39,7 @@ def sha256_transform():
 
     for i in range(16, 64):
         m[i] =( gamma1(m[i - 2]) + m[i - 7] + gamma0(m[i - 15]) + m[i - 16]) & 0xffffffff
-    
+
     a, b, c, d, e, f, g, h = init_state_256
 
     for i in range(64):
@@ -57,21 +60,69 @@ def sha256_transform():
 
 
 def sha256_update(s):
-    pass
-
+    length = len(s)
+    for i in range(length):
+        ctx['data'][ctx['datalen']] = ord(s[i])
+        ctx['datalen'] += 1
+        if ctx['datalen'] == 64:
+            sha256_transform()
+            ctx['bitlen'] += 512
+            ctx['datalen'] = 0
+    
+    ctx['data'][ctx['datalen']] = 0x80
+    ctx['data'][-1] = ctx['datalen'] * BITSIZE
+    sha256_transform()
 
 def sha256_final():
-    pass
+    h = []
+    i = ctx['datalen']
+    
+    if i > BLOCKSIZE - BITSIZE:
+        ctx['data'] = ctx['data'][:i] + [0] * (BLOCKSIZE - i)
+        sha256_transform()
+        ctx['data'] = [0] * BLOCKSIZE
+    else:
+        ctx['data'] = ctx['data'][:i] + [0] * (BLOCKSIZE - i)
+        
+    ctx['bitlen'] += ctx['datalen'] * BITSIZE
+
+    ctx['data'][56] = (ctx['bitlen'] >> 56) & 0xff
+    ctx['data'][57] = (ctx['bitlen'] >> 48) & 0xff
+    ctx['data'][58] = (ctx['bitlen'] >> 40) & 0xff
+    ctx['data'][59] = (ctx['bitlen'] >> 32) & 0xff
+    ctx['data'][60] = (ctx['bitlen'] >> 24) & 0xff
+    ctx['data'][61] = (ctx['bitlen'] >> 16) & 0xff
+    ctx['data'][62] = (ctx['bitlen'] >>  8) & 0xff
+    ctx['data'][63] = (ctx['bitlen'] >>  0) & 0xff
+
+    h.extend([hex(s)[2:] for s in ctx['state']])
+    return ''.join(h)
+
+
+
+def sha256(s=None):
+    sha_init()
+    if s:
+        sha256_update(s)
 
 if __name__ == '__main__':
-    sha_init()
     # t = 'password'
-    # for i, l in enumerate(t):
-    #     ctx['data'][i] = ord(l)
-    # ctx['data'][len(t)] = 0x80
-    # ctx['data'][-1] = len(t) << 3 & 0xffffffff
+    # sha_init()
+    # sha256_update(t)
+    # print(sha256_final() == '5e884898da28047151d0e56f8dc6292773603d0d6aabbdd62a11ef721d1542d8')
+   
+    # print([hex(s) for s in ctx['data']])
 
-    sha256_transform()
-    sha256_update('password')
-    sha256_final()
-    # print(ctx['state'])
+    # t = 'just a test string'
+    # sha_init()
+    # sha256_update(t)
+    # print(sha256_final() == 'd7b553c6f09ac85d142415f857c5310f3bbbe7cdd787cce4b985acedd585266f')
+
+    # t = 'just a test string' * 7
+    t = 'just a test string'
+    sha_init()
+    sha256_update(t)
+    # sha256_final()
+    print([hex(s) for s in ctx['state']])
+    print([hex(s) for s in ctx['data']])
+    # print(sha256_final() == '8113ebf33c97daa9998762aacafe750c7cefc2b2f173c90c59663a57fe626f21')
