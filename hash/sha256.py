@@ -2,8 +2,9 @@
 # FIPS 180-4
 # https://ws680.nist.gov/publication/get_pdf.cfm?pub_id=910977
 # from struct import pack, unpack
-from attr_helper import init_state_256, K_256
-from utils_helper import RotR, ShR
+__all__ = ['sha256']
+from .attr_helper import init_state_256, K_256
+from .utils_helper import RotR, ShR
 
 BLOCKSIZE = 64
 BITSIZE = 8
