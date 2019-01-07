@@ -1,3 +1,6 @@
+# helper para os módulos de hash;
+
+
 def ret_bytes(b):
    if b == 32:
       return 0xffffffff
