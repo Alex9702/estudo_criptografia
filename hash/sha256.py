@@ -103,7 +103,7 @@ class Sha256:
     
     def hexdigest(self):
         sha_final(ctx)
-        return ''.join([hex(s)[2:] for s in ctx['state']])
+        return ''.join([(8 - len(hex(s)[2:]))*'0' + hex(s)[2:] for s in ctx['state']])
     
     def update(self, message):
         sha_update(ctx, message)
