@@ -21,5 +21,10 @@ class ShaTests(TestCase):
 
         self.assertEqual(s.hexdigest(), '7693c3358b77f120c99b964578d4f338bc29f209cc78a3ac43727e72eb7f1472ddeddfafd8288fab50d82af5d44bfbb38ccbc960d37a7fef0a719e7bda14a1ee')
 
+    def test_sha_512_update2(self):
+        s = Sha512(frase * 5)
+        s.update(frase*5)
+        self.assertEqual(s.hexdigest(), '83d57e91db26823110d7c3b387f457b71548458809227d60cf298ab19da67c6cb91f9ed34ead4b659174ac3f753ae8e99a5ebbfa0c48659fdf2445e16dadf17d')
+
 if __name__ == "__main__":
     main()

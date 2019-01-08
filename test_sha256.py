@@ -20,5 +20,10 @@ class ShaTests(TestCase):
         s.update(frase)
         self.assertEqual(s.hexdigest(), '4cb926cd6bbdc69567eaff4b34f2e8bd2fd2f3d393fe8589b99a33c68dfecf5a')
 
+    def test_sha_256_update2(self):
+        s = Sha256(frase * 5)
+        s.update(frase*5)
+        self.assertEqual(s.hexdigest(), '17c9617a9f78c2940179d58592a8109ff1f6c2173fd349ecc9060381b2e6a603')
+
 if __name__ == "__main__":
     main()
